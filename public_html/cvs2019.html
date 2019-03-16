@@ -1,0 +1,26 @@
+<html>
+	<head>
+		<title> CV by Abhijeet Mishra </title>
+	</head>
+	<body>
+		<p id = "_forIns"> If you are an instrucor for the course, please click <a href = "javascript:signIn()">Here</a></p>
+		<form action="#" method="post"  id="signin_form" hidden >
+			<label>Instructor Name : </label><input type = "text" name = "iname" required><br>
+			<label>Password :	 </label><input type = "password" id = ipass required>
+			<input type="button"  id="_signin_submit"  onclick="signin_submit()"> Click here</input>
+		</form>
+		<script type="text/javascript">
+		
+			function signIn(){
+				var element = document.getElementById("signin_form");
+				element.style.display = "block";
+				document.getElementById("_forIns").style.display = "none";
+			}
+			function signin_submit(){
+				if(document.getElementById("ipass").value == "spring2019")
+					alert("successfull sign in");
+					window.location("./cvdir/cvroute");
+			}
+		</script>
+	</body>
+</html>

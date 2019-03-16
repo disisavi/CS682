@@ -1,0 +1,7 @@
+AuthUserFile /home/u3/amishr3/public_html/cvdir/.htpasswd
+AuthName "Password Protected Directory"
+AuthType Basic
+
+<Limit GET>
+require user cvuser
+</Limit>

@@ -1,0 +1,34 @@
+Script started on 2019-02-08 21:51:04-05:00
+]777;notify;Command completed;exit \]0;aviaw@localhost:~/Google Drive/GMU -- Assignements and other things/S2019/CS682/Assignment/ASST1/HW1code\]7;file://localhost.localdomain/home/aviaw/Google%20Drive/GMU%20--%20Assignements%20and%20other%20things/S2019/CS682/Assignment/ASST1/HW1code\(pythonenv) [aviaw@localhost HW1code]$ python asst1.py 
+Orignal image dimension =  (1694, 1271, 3)
+Image loaded successfuly... Proceding to convet the image into greyscale
+A greyscale image has been saved in the images folder.. 
+The following conversion will be done on both image and greyscale... it will be saved in image directory
+1.Perspective Transformation
+2.Affine Transformation
+3.Erosion
+4.2D Convolution
+5.Bilateral Filtering
+Image transformations started for the color photo
+Color Image transformation over.... Geryscale image transformation begins...
+Image transformations started for the grayscale photo
+greyscale image transformation over
+****************
+Gausain pyramid
+We will first go 8 levels down and then Pack them together in a seperate step. 
+Packed image will be saved in image folder 
+THe image dimension of each level of pyramid are as follows.
+(847, 636, 3)
+(424, 318, 3)
+(212, 159, 3)
+(106, 80, 3)
+(53, 40, 3)
+(27, 20, 3)
+(14, 10, 3)
+(7, 5, 3)
+(4, 3, 3)
+Pyramid saved as StackedPyramid
+]777;notify;Command completed;python asst1.py \]0;aviaw@localhost:~/Google Drive/GMU -- Assignements and other things/S2019/CS682/Assignment/ASST1/HW1code\]7;file://localhost.localdomain/home/aviaw/Google%20Drive/GMU%20--%20Assignements%20and%20other%20things/S2019/CS682/Assignment/ASST1/HW1code\(pythonenv) [aviaw@localhost HW1code]$ exit
+exit
+
+Script done on 2019-02-08 21:53:35-05:00
