@@ -1,6 +1,4 @@
 import glob
-import random
-
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,19 +23,22 @@ def imageGradientGray(images):
     xlist = []
     ylist = []
     imageList = []
+    edgeList = []
     for i, edge in enumerate(detected_edges):
         a = sobelList(edge)
+
+        angle = cv2.phase(a[0], a[1], angleInDegrees=True) // 10
+        m = np.sqrt(np.square(a[0]) + np.square(a[1]))
+        hist = np.histogram(angle, 35, weights=m)
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(a[0])
             ylist.append(a[1])
             imageList.append(images[i])
-
-        angle = cv2.phase(a[0], a[1], angleInDegrees=True) // 10
-        hist = np.histogram(angle, 35, [0, 35])
+            edgeList.append(m)
         returnList.append(hist[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image)
+        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray")
 
     return returnList
 
@@ -74,18 +75,22 @@ def imageGradientColor(images):
 
         x = b[0] + g[0] + r[0]
         y = b[1] + g[1] + r[1]
-        if i == 0 or i == 28 or i == 65 or i == 95:
-            xlist.append(x)
-            ylist.append(y)
-            imageList.append(image)
         m, angle = cv2.cartToPolar(x, y, angleInDegrees=True)
         angle = angle // 10
+        print(np.amax(m))
+        maxvalue = np.amax(m)
+        m = np.multiply(m, 255) / maxvalue
+        if i == 0 or i == 28 or i == 65 or i == 95:
+            xlist.append(x / 3)
+            ylist.append(y / 3)
+            imageList.append(image)
+            edgeList.append(m)
         histogram = np.histogram(angle, range(36), weights=m)
 
         hist.append(histogram[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image)
+        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color")
     return hist
 
 
@@ -119,8 +124,8 @@ def showHistComparision(histogram, color):
 
     histogram_intersection_matrix = histogram_intersection_matrix - 255
     histogram_intersection_matrix = np.absolute(histogram_intersection_matrix)
-    print("Intersection matrix after scaling \n", histogram_intersection_matrix)
-    plt.imshow(histogram_intersection_matrix, cmap='autumn')
+    print("Intersection matrix for " + color + " matrix after scaling \n", histogram_intersection_matrix)
+    plt.imshow(histogram_intersection_matrix)
     plt.colorbar()
     plt.title("Intersectoin Matrix " + color)
     plt.show()
@@ -129,25 +134,44 @@ def showHistComparision(histogram, color):
     print(maxvalue)
     histogram_chisquare_matrix = np.multiply(histogram_chisquare_matrix, 255 / maxvalue, casting='unsafe')
     histogram_chisquare_matrix = histogram_chisquare_matrix.astype(np.uint8)
-    print("Chisquare matrix after scaling\n", histogram_chisquare_matrix)
+    print("Chisquare matrix for " + color + " after scaling\n", histogram_chisquare_matrix)
 
-    plt.imshow(histogram_chisquare_matrix, cmap='autumn')
+    plt.imshow(histogram_chisquare_matrix)
     plt.colorbar()
     plt.title("Chi square Matrix " + color)
     plt.show()
 
 
-def showHistquiverandGradient(u, v, image):
+def showHistquiverandGradient(u, v, image, histogram, edge, code):
+    fig = plt.figure()
+    fig.suptitle("Part 1 --- The  Sobel Gradient of the Image", fontsize=16)
+    plt.subplot(131), plt.imshow(image), plt.title("Image")
+    plt.subplot(132), plt.imshow(u, cmap="gray"), plt.title("X gradient")
+    plt.subplot(133), plt.imshow(v, cmap="gray"), plt.title("Y gradient")
+    plt.show()
+
+    fig = plt.figure()
+    fig.suptitle("Edges ", fontsize=16)
+    plt.subplot(121), plt.imshow(image), plt.title("Image")
+    plt.subplot(122), plt.imshow(edge, cmap="gray"), plt.title(code + " Edges")
+    plt.show()
+
+    plt.plot(histogram, color="blue")
+    plt.title("Histogram for the " + code + " image")
+    plt.show()
+
     w = image.shape
     x, y = np.mgrid[0:w[1]:500j, 0:w[0]:500j]
     skip = (slice(None, None, 10), slice(None, None, 10))
     x, y = x[skip], y[skip]
     u, v = u[skip].T, v[skip].T
-    if len(w == 3 ):
+
+    if len(w) == 3:
         plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     else:
         plt.imshow(image, cmap='gray')
-    plt.quiver(x, y, u, v, width=0.001, scale=0.02, scale_units="width")
+
+    plt.quiver(x, y, u, v, width=0.001, scale=0.002, scale_units="width")
     plt.show()
 
 
@@ -161,10 +185,12 @@ def main():
     grayImages = convertToGray(images)
     print("Gray image conversion done")
     print("Taking image Gradient of Gray images")
-    grayHistogramList = imageGradientGray(grayImages)
-    colorHistogramList = imageGradientColor(images)
+    # grayHistogramList = imageGradientGray(grayImages)
     print("gray image gradient calculation done")
-    showHistComparision(grayHistogramList, "Gray")
+    print("Taking image Gradient of Color images")
+    colorHistogramList = imageGradientColor(images)
+    print("Color image gradient calculation done")
+    # showHistComparision(grayHistogramList, "Gray")
     showHistComparision(colorHistogramList, "Color")
 
 
