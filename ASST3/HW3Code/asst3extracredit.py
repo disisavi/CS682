@@ -3,7 +3,9 @@ import numpy as np
 import cv2
 import os
 
-
+# check scaling for Vector 
+# imagesc
+# thresholding... 
 def imageGradientColor(images):
     v = []
     xlist = []
@@ -11,12 +13,9 @@ def imageGradientColor(images):
     imageList = []
     edgeList = []
     for i, image in enumerate(images):
-        rEdge = ast.cannyEdgeDetector(image[:, :, 2])
-        gEdge = ast.cannyEdgeDetector(image[:, :, 1])
-        bEdge = ast.cannyEdgeDetector(image[:, :, 0])
-        r = ast.sobelList(rEdge)
-        b = ast.sobelList(bEdge)
-        g = ast.sobelList(gEdge)
+        r = ast.sobelList(image[:, :, 2])
+        b = ast.sobelList(image[:, :, 0])
+        g = ast.sobelList(image[:, :, 1])
         x2 = b[0] + g[0] + r[0]
         y = b[1] + g[1] + r[1]
 

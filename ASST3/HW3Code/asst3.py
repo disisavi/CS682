@@ -18,18 +18,17 @@ def convertToGray(images):
 
 
 def imageGradientGray(images):
-    detected_edges = [cannyEdgeDetector(image) for image in images]
     returnList = []
     xlist = []
     ylist = []
     imageList = []
     edgeList = []
-    for i, edge in enumerate(detected_edges):
+    for i, edge in enumerate(images):
         a = sobelList(edge)
-
-        angle = cv2.phase(a[0], a[1], angleInDegrees=True) // 10
+        angle = cv2.phase(a[0], a[1], angleInDegrees=True)
         m = np.sqrt(np.square(a[0]) + np.square(a[1]))
-        hist = np.histogram(angle, 35, weights=m)
+        angle, m = nonMaxSuppression(angle, m)
+        hist = np.histogram(angle, 35, )
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(a[0])
             ylist.append(a[1])
@@ -38,24 +37,9 @@ def imageGradientGray(images):
         returnList.append(hist[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray")
+        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray", i)
 
     return returnList
-
-
-def sobelList(edge):
-    tempList = [cv2.Sobel(edge, cv2.CV_64F, 1, 0, ksize=5), cv2.Sobel(edge, cv2.CV_64F, 0, 1, ksize=5)]
-    return tempList
-
-
-def cannyEdgeDetector(image):
-    sigma = 0.6
-    img_blur = cv2.blur(image, (5, 5))
-    v = np.median(image)
-    lower = int(max(0, (1.0 - sigma) * v))
-    upper = int(min(255, (1.0 + sigma) * v))
-    detected_edge = cv2.Canny(img_blur, lower, upper)
-    return detected_edge
 
 
 def imageGradientColor(images):
@@ -66,18 +50,14 @@ def imageGradientColor(images):
     edgeList = []
 
     for i, image in enumerate(images):
-        rEdge = cannyEdgeDetector(image[:, :, 2])
-        gEdge = cannyEdgeDetector(image[:, :, 1])
-        bEdge = cannyEdgeDetector(image[:, :, 0])
-        r = sobelList(rEdge)
-        b = sobelList(bEdge)
-        g = sobelList(gEdge)
+        r = sobelList(image[:, :, 2])
+        b = sobelList(image[:, :, 1])
+        g = sobelList(image[:, :, 1])
 
         x = b[0] + g[0] + r[0]
         y = b[1] + g[1] + r[1]
         m, angle = cv2.cartToPolar(x, y, angleInDegrees=True)
         angle = angle // 10
-        print(np.amax(m))
         maxvalue = np.amax(m)
         m = np.multiply(m, 255) / maxvalue
         if i == 0 or i == 28 or i == 65 or i == 95:
@@ -85,13 +65,24 @@ def imageGradientColor(images):
             ylist.append(y / 3)
             imageList.append(image)
             edgeList.append(m)
-        histogram = np.histogram(angle, range(36), weights=m)
+        histogram = np.histogram(angle, range(36))
 
         hist.append(histogram[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color")
+        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color", i)
     return hist
+
+
+def nonMaxSuppression(angle, magnitude):
+
+    return angle, magnitude
+
+
+def sobelList(edge):
+    img_blur = cv2.blur(edge, (5, 5))
+    tempList = [cv2.Sobel(img_blur, cv2.CV_64F, 1, 0, ksize=5), cv2.Sobel(img_blur, cv2.CV_64F, 0, 1, ksize=5)]
+    return tempList
 
 
 def histogram_intersection(hist1, hist2):
@@ -142,22 +133,26 @@ def showHistComparision(histogram, color):
     plt.show()
 
 
-def showHistquiverandGradient(u, v, image, histogram, edge, code):
+def showHistquiverandGradient(u, v, image, histogram, edge, code, index=0):
+    location = '../ImageSource/'
     fig = plt.figure()
     fig.suptitle("Part 1 --- The  Sobel Gradient of the Image", fontsize=16)
     plt.subplot(131), plt.imshow(image), plt.title("Image")
     plt.subplot(132), plt.imshow(u, cmap="gray"), plt.title("X gradient")
     plt.subplot(133), plt.imshow(v, cmap="gray"), plt.title("Y gradient")
+    # plt.savefig(location + code + " " + str(index) + " Sobel o/p.png")
     plt.show()
 
     fig = plt.figure()
     fig.suptitle("Edges ", fontsize=16)
     plt.subplot(121), plt.imshow(image), plt.title("Image")
     plt.subplot(122), plt.imshow(edge, cmap="gray"), plt.title(code + " Edges")
+    # plt.savefig(location + code + " Edges.png")
     plt.show()
 
     plt.plot(histogram, color="blue")
     plt.title("Histogram for the " + code + " image")
+    # plt.savefig(location + code + " Histogram.png")
     plt.show()
 
     w = image.shape
@@ -171,7 +166,8 @@ def showHistquiverandGradient(u, v, image, histogram, edge, code):
     else:
         plt.imshow(image, cmap='gray')
 
-    plt.quiver(x, y, u, v, width=0.001, scale=0.002, scale_units="width")
+    plt.quiver(x, y, u, v, width=0.001, scale=0.0002, scale_units="width")
+    # plt.savefig(location + code + " quiver.png")
     plt.show()
 
 
@@ -185,12 +181,12 @@ def main():
     grayImages = convertToGray(images)
     print("Gray image conversion done")
     print("Taking image Gradient of Gray images")
-    # grayHistogramList = imageGradientGray(grayImages)
+    grayHistogramList = imageGradientGray(grayImages)
     print("gray image gradient calculation done")
     print("Taking image Gradient of Color images")
     colorHistogramList = imageGradientColor(images)
     print("Color image gradient calculation done")
-    # showHistComparision(grayHistogramList, "Gray")
+    showHistComparision(grayHistogramList, "Gray")
     showHistComparision(colorHistogramList, "Color")
 
 
