@@ -27,13 +27,21 @@ def imageGradientGray(images):
         a = sobelList(edge)
         angle = cv2.phase(a[0], a[1], angleInDegrees=True)
         m = np.sqrt(np.square(a[0]) + np.square(a[1]))
+
         angle, m = nonMaxSuppression(angle, m)
-        hist = np.histogram(angle, 35, )
+        angle = angle // 10
+        max = np.amax(m)
+        m = (m * 255) / max
+        m = m.astype('uint8')
+        # print(np.amax(m))
+        m = thresholding(angle, m)
+        hist = np.histogram(angle, range(1, 36))
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(a[0])
             ylist.append(a[1])
             imageList.append(images[i])
             edgeList.append(m)
+
         returnList.append(hist[0])
 
     for i, image in enumerate(imageList):
@@ -58,14 +66,17 @@ def imageGradientColor(images):
         y = b[1] + g[1] + r[1]
         m, angle = cv2.cartToPolar(x, y, angleInDegrees=True)
         angle = angle // 10
-        maxvalue = np.amax(m)
-        m = np.multiply(m, 255) / maxvalue
+        max = np.amax(m)
+        m = (m * 255) / max
+        m = m.astype('uint8')
+        # print(np.amax(m))
+        m = thresholding(angle, m)
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(x / 3)
             ylist.append(y / 3)
             imageList.append(image)
             edgeList.append(m)
-        histogram = np.histogram(angle, range(36))
+        histogram = np.histogram(angle, range(1, 36))
 
         hist.append(histogram[0])
 
@@ -74,9 +85,48 @@ def imageGradientColor(images):
     return hist
 
 
-def nonMaxSuppression(angle, magnitude):
+i = 0
 
-    return angle, magnitude
+
+def nonMaxSuppression(angle, magnitude):
+    global i
+    i += 1
+    print("Non maxima suppression starts ", str(i))
+    ymax, xmax = angle.shape
+    a = np.zeros(angle.shape)
+    m = np.zeros(angle.shape)
+    for (x, y), item in np.ndenumerate(angle):
+        if x > 0 and y > 0 and y < ymax and x < xmax:
+            if (angle[x][y] >= 337.5 or angle[x][y] < 22.5) or (angle[x][y] >= 157.5 and angle[x][y] < 202.5):
+                if magnitude[x][y] >= magnitude[x][y + 1] and magnitude[x][y] >= magnitude[x][y - 1]:
+                    m[x][y] = magnitude[x][y]
+                    a[x][y] = angle[x][y]
+            # 45 degrees
+            if (angle[x][y] >= 22.5 and angle[x][y] < 67.5) or (angle[x][y] >= 202.5 and angle[x][y] < 247.5):
+                if magnitude[x][y] >= magnitude[x - 1][y + 1] and magnitude[x][y] >= magnitude[x + 1][x - 1]:
+                    m[x][y] = magnitude[x][y]
+                    a[x][y] = angle[x][y]
+            # 90 degrees
+            if (angle[x][y] >= 67.5 and angle[x][y] < 112.5) or (angle[x][y] >= 247.5 and angle[x][y] < 292.5):
+                if magnitude[x][y] >= magnitude[x - 1][y] and magnitude[x][y] >= magnitude[x + 1][y]:
+                    m[x][y] = magnitude[x][y]
+                    a[x][y] = angle[x][y]
+            # 135 degrees
+            if (angle[x][y] >= 112.5 and angle[x][y] < 157.5) or (angle[x][y] >= 292.5 and angle[x][y] < 337.5):
+                if magnitude[x][y] >= magnitude[x - 1][y - 1] and magnitude[x][y] >= magnitude[x + 1][y + 1]:
+                    m[x][y] = magnitude[x][y]
+                    a[x][y] = angle[x][y]
+    print("Non maxima suppression Ends")
+    return a, m
+
+
+def thresholding(angle, m):
+    high = 0.8 * np.amax(m)
+    low = 0.2 * np.amax(m)
+    m[m >= low] = 170
+    m[m > high] = 255
+    m[m < low] = 0
+    return m
 
 
 def sobelList(edge):
