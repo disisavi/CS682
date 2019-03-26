@@ -13,6 +13,7 @@ def imageGradientColor(images):
     imageList = []
     edgeList = []
     for i, image in enumerate(images):
+        image = cv2.blur(image, (5, 5))
         r = ast.sobelList(image[:, :, 2])
         b = ast.sobelList(image[:, :, 0])
         g = ast.sobelList(image[:, :, 1])
@@ -27,22 +28,20 @@ def imageGradientColor(images):
 
         L1 = (ct1 + ct2) / 2
         L2 = (ct1 - ct2) / 2
-        if np.count_nonzero(L1) == 0:
-            lam = L1
-        else:
-            lam = L2
+        lam = L1
 
         lam = np.absolute(lam)
         m = np.sqrt(lam)
-        # m = lam
-        x = np.divide(b, a - lam, out=b, where=a - lam != 0)
+        x = np.divide(-b, a - lam,where=a - lam != 0)
         den = np.sqrt(np.square(x) + 1)
-        e = [np.divide(x, den),
-             1 / den]
-        angle = cv2.phase(e[0], e[1], angleInDegrees=True)//5
-        maxvalue = np.amax(m)
-        m = np.multiply(m, 255) / maxvalue
-        histogram = np.histogram(angle, range(36), weights=m)
+        e = [np.divide(x, den),1 / den]
+        angle = cv2.phase(e[0],e[1], angleInDegrees=True)
+        print(np.amax(e[0]),np.amin(e[0]))
+        angle = np.rint(angle/5)
+        # m = ast.thresholding(angle, m)
+        histogram = np.histogram(angle,36,[0,36],weights = m)
+        max = np.amax(m)
+        m = (m*255)/max
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(x2)
             ylist.append(y)

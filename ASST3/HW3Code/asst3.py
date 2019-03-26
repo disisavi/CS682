@@ -23,29 +23,29 @@ def imageGradientGray(images):
     ylist = []
     imageList = []
     edgeList = []
+    angleList = []
     for i, edge in enumerate(images):
+        edge = cv2.blur(edge, (5, 5))
         a = sobelList(edge)
         angle = cv2.phase(a[0], a[1], angleInDegrees=True)
         m = np.sqrt(np.square(a[0]) + np.square(a[1]))
 
-        angle, m = nonMaxSuppression(angle, m)
-        angle = angle // 10
         max = np.amax(m)
         m = (m * 255) / max
         m = m.astype('uint8')
-        # print(np.amax(m))
-        m = thresholding(angle, m)
-        hist = np.histogram(angle, range(1, 36))
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(a[0])
             ylist.append(a[1])
             imageList.append(images[i])
             edgeList.append(m)
-
+            angleList.append(angle)
+        
+        angle = np.rint(angle/10)
+        hist = np.histogram(angle,36,[1,36])
         returnList.append(hist[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray", i)
+        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray", i,angleList[i])
 
     return returnList
 
@@ -56,8 +56,10 @@ def imageGradientColor(images):
     ylist = []
     imageList = []
     edgeList = []
+    angleList = []
 
     for i, image in enumerate(images):
+        image = cv2.blur(image, (5, 5))
         r = sobelList(image[:, :, 2])
         b = sobelList(image[:, :, 1])
         g = sobelList(image[:, :, 1])
@@ -65,23 +67,23 @@ def imageGradientColor(images):
         x = b[0] + g[0] + r[0]
         y = b[1] + g[1] + r[1]
         m, angle = cv2.cartToPolar(x, y, angleInDegrees=True)
-        angle = angle // 10
+        # m = thresholding(angle, m)
         max = np.amax(m)
-        m = (m * 255) / max
-        m = m.astype('uint8')
-        # print(np.amax(m))
-        m = thresholding(angle, m)
+        m = (m*255)/max
         if i == 0 or i == 28 or i == 65 or i == 95:
             xlist.append(x / 3)
             ylist.append(y / 3)
             imageList.append(image)
             edgeList.append(m)
-        histogram = np.histogram(angle, range(1, 36))
+            angleList.append(angle)
+        
+        angle = np.rint(angle / 10)
+        histogram = np.histogram(angle,36,[1,36])
 
         hist.append(histogram[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color", i)
+        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color", i,angleList[i])
     return hist
 
 
@@ -93,40 +95,46 @@ def nonMaxSuppression(angle, magnitude):
     i += 1
     print("Non maxima suppression starts ", str(i))
     ymax, xmax = angle.shape
-    a = np.zeros(angle.shape)
     m = np.zeros(angle.shape)
     for (x, y), item in np.ndenumerate(angle):
         if x > 0 and y > 0 and y < ymax and x < xmax:
             if (angle[x][y] >= 337.5 or angle[x][y] < 22.5) or (angle[x][y] >= 157.5 and angle[x][y] < 202.5):
                 if magnitude[x][y] >= magnitude[x][y + 1] and magnitude[x][y] >= magnitude[x][y - 1]:
                     m[x][y] = magnitude[x][y]
-                    a[x][y] = angle[x][y]
             # 45 degrees
             if (angle[x][y] >= 22.5 and angle[x][y] < 67.5) or (angle[x][y] >= 202.5 and angle[x][y] < 247.5):
                 if magnitude[x][y] >= magnitude[x - 1][y + 1] and magnitude[x][y] >= magnitude[x + 1][x - 1]:
                     m[x][y] = magnitude[x][y]
-                    a[x][y] = angle[x][y]
             # 90 degrees
             if (angle[x][y] >= 67.5 and angle[x][y] < 112.5) or (angle[x][y] >= 247.5 and angle[x][y] < 292.5):
                 if magnitude[x][y] >= magnitude[x - 1][y] and magnitude[x][y] >= magnitude[x + 1][y]:
                     m[x][y] = magnitude[x][y]
-                    a[x][y] = angle[x][y]
             # 135 degrees
             if (angle[x][y] >= 112.5 and angle[x][y] < 157.5) or (angle[x][y] >= 292.5 and angle[x][y] < 337.5):
                 if magnitude[x][y] >= magnitude[x - 1][y - 1] and magnitude[x][y] >= magnitude[x + 1][y + 1]:
                     m[x][y] = magnitude[x][y]
-                    a[x][y] = angle[x][y]
     print("Non maxima suppression Ends")
-    return a, m
+    return  m
 
 
-def thresholding(angle, m):
-    high = 0.8 * np.amax(m)
-    low = 0.2 * np.amax(m)
-    m[m >= low] = 170
-    m[m > high] = 255
-    m[m < low] = 0
-    return m
+def thresholding(angle, img):
+    highThreshold = np.amax(img) * 0.8
+    lowThreshold = highThreshold * 0.05
+    
+    M, N = img.shape
+    res = np.zeros((M,N), dtype=np.int32)
+    
+    weak = np.int32(100)
+    strong = np.int32(255)
+    
+    strong_i, strong_j = np.where(img >= highThreshold)
+    zeros_i, zeros_j = np.where(img < lowThreshold)
+    
+    weak_i, weak_j = np.where((img < highThreshold) & (img >= lowThreshold))
+    
+    res[strong_i, strong_j] = strong
+    res[weak_i, weak_j] = weak
+    return res
 
 
 def sobelList(edge):
@@ -183,7 +191,7 @@ def showHistComparision(histogram, color):
     plt.show()
 
 
-def showHistquiverandGradient(u, v, image, histogram, edge, code, index=0):
+def showHistquiverandGradient(u, v, image, histogram, edge, code, index,angle):
     location = '../ImageSource/'
     fig = plt.figure()
     fig.suptitle("Part 1 --- The  Sobel Gradient of the Image", fontsize=16)
@@ -208,16 +216,17 @@ def showHistquiverandGradient(u, v, image, histogram, edge, code, index=0):
     w = image.shape
     x, y = np.mgrid[0:w[1]:500j, 0:w[0]:500j]
     skip = (slice(None, None, 10), slice(None, None, 10))
-    x, y = x[skip], y[skip]
+    x, y = x[skip].T, y[skip].T
     u, v = u[skip].T, v[skip].T
-
+    u = u/10
+    v = v/10
     if len(w) == 3:
         plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     else:
         plt.imshow(image, cmap='gray')
 
-    plt.quiver(x, y, u, v, width=0.001, scale=0.0002, scale_units="width")
-    # plt.savefig(location + code + " quiver.png")
+    plt.quiver(x,y, u,v,width=0.01)
+    
     plt.show()
 
 
