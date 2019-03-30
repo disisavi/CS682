@@ -36,7 +36,7 @@ def imageGradientColor(images):
         den = np.sqrt(np.square(x) + 1)
         e = [np.divide(x, den),1 / den]
         angle = cv2.phase(e[0],e[1], angleInDegrees=True)
-        print(np.amax(e[0]),np.amin(e[0]))
+        # print(np.amax(e[0]),np.amin(e[0]))
         angle = np.rint(angle/5)
         # m = ast.thresholding(angle, m)
         histogram = np.histogram(angle,36,[0,36],weights = m)
@@ -50,7 +50,7 @@ def imageGradientColor(images):
         v.append(histogram[0])
 
     for i, image in enumerate(imageList):
-        ast.showHistquiverandGradient(xlist[i], ylist[i], image, v[i], edgeList[i], "Eigenvectors Color")
+        ast.showHistquiverandGradient(xlist[i], ylist[i], image, v[i], edgeList[i], "Eigenvectors Color",i)
     return v
 
 

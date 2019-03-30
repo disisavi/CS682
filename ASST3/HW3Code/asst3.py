@@ -23,7 +23,7 @@ def imageGradientGray(images):
     ylist = []
     imageList = []
     edgeList = []
-    angleList = []
+    
     for i, edge in enumerate(images):
         edge = cv2.blur(edge, (5, 5))
         a = sobelList(edge)
@@ -38,14 +38,13 @@ def imageGradientGray(images):
             ylist.append(a[1])
             imageList.append(images[i])
             edgeList.append(m)
-            angleList.append(angle)
         
         angle = np.rint(angle/10)
         hist = np.histogram(angle,36,[1,36])
         returnList.append(hist[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray", i,angleList[i])
+        showHistquiverandGradient(xlist[i], ylist[i], image, returnList[i], edgeList[i], "gray", i)
 
     return returnList
 
@@ -56,12 +55,11 @@ def imageGradientColor(images):
     ylist = []
     imageList = []
     edgeList = []
-    angleList = []
 
     for i, image in enumerate(images):
         image = cv2.blur(image, (5, 5))
         r = sobelList(image[:, :, 2])
-        b = sobelList(image[:, :, 1])
+        b = sobelList(image[:, :, 0])
         g = sobelList(image[:, :, 1])
 
         x = b[0] + g[0] + r[0]
@@ -75,15 +73,13 @@ def imageGradientColor(images):
             ylist.append(y / 3)
             imageList.append(image)
             edgeList.append(m)
-            angleList.append(angle)
         
         angle = np.rint(angle / 10)
         histogram = np.histogram(angle,36,[1,36])
-
         hist.append(histogram[0])
 
     for i, image in enumerate(imageList):
-        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color", i,angleList[i])
+        showHistquiverandGradient(xlist[i], ylist[i], image, hist[i], edgeList[i], "Color", i)
     return hist
 
 
@@ -163,6 +159,7 @@ def histogram_chisquare(hist1, hist2):
 
 
 def showHistComparision(histogram, color):
+    location = '../ImageSource/op/'
     histogram_intersection_matrix = np.zeros((99, 99), dtype=np.int16)
     histogram_chisquare_matrix = np.zeros((99, 99), dtype=np.float64)
     for i in range(len(histogram)):
@@ -177,6 +174,7 @@ def showHistComparision(histogram, color):
     plt.imshow(histogram_intersection_matrix)
     plt.colorbar()
     plt.title("Intersectoin Matrix " + color)
+    plt.savefig(location + color + "_IntersectionMatrix.png")
     plt.show()
 
     maxvalue = np.amax(histogram_chisquare_matrix)
@@ -188,45 +186,46 @@ def showHistComparision(histogram, color):
     plt.imshow(histogram_chisquare_matrix)
     plt.colorbar()
     plt.title("Chi square Matrix " + color)
+    plt.savefig(location + color + "_ChiSquareMatrix.png")
     plt.show()
 
 
-def showHistquiverandGradient(u, v, image, histogram, edge, code, index,angle):
-    location = '../ImageSource/'
+def showHistquiverandGradient(u, v, image, histogram, edge, code, index):
+    location = '../ImageSource/op/'
     fig = plt.figure()
     fig.suptitle("Part 1 --- The  Sobel Gradient of the Image", fontsize=16)
-    plt.subplot(131), plt.imshow(image), plt.title("Image")
-    plt.subplot(132), plt.imshow(u, cmap="gray"), plt.title("X gradient")
-    plt.subplot(133), plt.imshow(v, cmap="gray"), plt.title("Y gradient")
-    # plt.savefig(location + code + " " + str(index) + " Sobel o/p.png")
+    plt.subplot(121), plt.imshow(u, cmap="gray"), plt.title("X gradient")
+    plt.subplot(122), plt.imshow(v, cmap="gray"), plt.title("Y gradient")
+    plt.savefig(location + code + "_" + str(index+1) + "_Sobel.png")
     plt.show()
 
     fig = plt.figure()
     fig.suptitle("Edges ", fontsize=16)
-    plt.subplot(121), plt.imshow(image), plt.title("Image")
-    plt.subplot(122), plt.imshow(edge, cmap="gray"), plt.title(code + " Edges")
-    # plt.savefig(location + code + " Edges.png")
+    plt.imshow(edge, cmap="gray")
+    plt.title(code + " Edges")
+    plt.savefig(location + code + "_" + str(index+1) + "_Edges.png")
     plt.show()
 
     plt.plot(histogram, color="blue")
     plt.title("Histogram for the " + code + " image")
-    # plt.savefig(location + code + " Histogram.png")
+    plt.savefig(location + code + "_" + str(index+1) + "_Histogram.png")
     plt.show()
 
     w = image.shape
     x, y = np.mgrid[0:w[1]:500j, 0:w[0]:500j]
-    skip = (slice(None, None, 10), slice(None, None, 10))
+    skip = (slice(None, None, 50), slice(None, None, 50))
     x, y = x[skip].T, y[skip].T
     u, v = u[skip].T, v[skip].T
-    u = u/10
-    v = v/10
+    u = u/500
+    v = v/500
+
     if len(w) == 3:
         plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     else:
         plt.imshow(image, cmap='gray')
 
-    plt.quiver(x,y, u,v,width=0.01)
-    
+    plt.quiver(x,y, v,u,width=0.0009)
+    plt.savefig(location + code + "_" + str(index+1) + "_Quiver.png")
     plt.show()
 
 

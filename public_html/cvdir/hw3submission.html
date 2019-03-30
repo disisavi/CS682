@@ -1,0 +1,475 @@
+<html>
+<head>
+	<title> CV by Abhijeet Mishra </title>
+	<style></style>
+
+		body {
+			background-color: aliceblue;
+			margin: 20px
+		}
+
+		H2,
+		h3,
+		h4 {
+			text-align: center;
+		}
+
+		table {
+			margin-left: auto;
+			margin-right: auto;
+			width: 70%;
+		}
+
+		table,
+		th,
+		td {
+			border: 1px solid black;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			padding: 15px;
+			text-align: center;
+		}
+
+		table tr:nth-child(even) {
+			background-color: #eee;
+		}
+
+		table tr:nth-child(odd) {
+			background-color: #fff;
+		}
+
+		table th {
+			background-color: black;
+			color: white;
+		}
+
+		.row {
+			display: flex;
+			flex-wrap: wrap;
+			padding: 0 4px;
+		}
+
+		/* Create four equal columns that sits next to each other */
+		.column {
+			flex: 25%;
+			max-width: 50%;
+			padding: 0 4px;
+
+
+		}
+
+		.column img {
+			margin-top: 8px;
+			max-width: 100%;
+			max-height: 94%;
+			display: block;
+			margin: auto;
+		}
+
+		.imgcoloumn {
+			max-width: 100%;
+			height: 500px;
+			border: 1px solid black;
+			margin: 2px;
+			text-align: center
+		}
+
+		.border {
+			border: 3px solid gray;
+		}
+
+		.border2 {
+			border: 3px solid teal;
+		}
+
+		.center {
+			margin-left: auto;
+			margin-right: auto
+		}
+
+		/* Responsive layout - makes a two column-layout instead of four columns */
+		@media screen and (max-width: 800px) {
+			.column {
+				flex: 50%;
+				max-width: 50%;
+			}
+		}
+
+		/* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
+		@media screen and (max-width: 600px) {
+			.column {
+				flex: 100%;
+				max-width: 100%;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<H2> 2nd assignment table </H2>
+
+	<h3>Files for download</h3>
+	<table>
+		<tr>
+			<th>S.No</th>
+			<th>File Type</th>
+			<th>FIle</th>
+		</tr>
+		<tr>
+			<td>1</td>
+			<td>Project Zip (Readme in next row)</td>
+			<td><a href="./submissionFiles/HW3/submission-hw3-G01083086.zip" download>Full project</a></td>
+		</tr>
+		<tr>
+			<td>2</td>
+			<td>README</td>
+			<td><a href="./submissionFiles/HW3/README.txt" download>REAMDE file</a></td>
+		</tr>
+		<tr>
+			<td>4</td>
+			<td>Report</td>
+			<td><a href="./submissionFiles/HW2/report.txt" download>Report Downloadable</a></td>
+		</tr>
+	</table>
+	<br>
+	<div>
+		<div class=border>
+			<H2> Gray Image Edges</H2>
+			<div>
+				<H4> Image 1 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 1</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4001.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_1_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_1_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_1_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_1_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 2 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 2</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4029.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_2_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_2_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_2_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_2_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 3 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 3</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4066.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_3_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_3_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_3_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_3_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 4 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 4</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4096.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_4_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_4_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_4_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/gray_4_Quiver.png"></div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Inter section Matrix</label><br><img
+								src="./submissionFiles/HW3/images/Gray_IntersectionMatrix.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Chi square Matrix</label><br><img
+								src="./submissionFiles/HW3/images/Gray_ChiSquareMatrix.png"></div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class=border2>
+			<H2> Color Image Edges</H2>
+			<div>
+				<H4> Image 1 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 1</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4001.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_1_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_1_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_1_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_1_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 2 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 2</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4029.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_2_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_2_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_2_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_2_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 3 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 3</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4066.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_3_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_3_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_3_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_3_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 4 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 4</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4096.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_4_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_4_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_4_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Color_4_Quiver.png"></div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Inter section Matrix</label><br><img
+								src="./submissionFiles/HW3/images/Color_IntersectionMatrix.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Chi square Matrix</label><br><img
+								src="./submissionFiles/HW3/images/Color_ChiSquareMatrix.png"></div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class=border2>
+			<H2> Eigenvectors Color Image Edges</H2>
+			<div>
+				<H4> Image 1 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 1</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4001.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_1_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_1_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_1_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_1_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 2 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 2</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4029.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_2_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_2_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_2_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_2_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 3 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 3</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4066.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_3_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_3_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_3_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_3_Quiver.png"></div>
+					</div>
+
+				</div>
+			</div>
+			<div>
+				<H4> Image 4 </H4>
+				<div class=row>
+					<div class="column center">
+						<div class=imgcoloumn> <label>image 4</label><br><img
+								src="./submissionFiles/HW3/images/ST2MainHall4096.jpg"></div>
+					</div>
+				</div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Sobel X and Y for the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_4_Sobel.png"></div>
+						<div class=imgcoloumn> <label> Histogram of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_4_Histogram.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_4_Edges.png"></div>
+						<div class=imgcoloumn> <label> Edges of the Image</label><br><img
+								src="./submissionFiles/HW3/images/Eigenvectors Color_4_Quiver.png"></div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div class=row>
+					<div class="column">
+						<div class=imgcoloumn> <label> Inter section Matrix</label><br><img
+								src="./submissionFiles/HW3/images/EV Color_IntersectionMatrix.png"></div>
+					</div>
+					<div class="column">
+						<div class=imgcoloumn> <label> Chi square Matrix</label><br><img
+								src="./submissionFiles/HW3/images/EV Color_ChiSquareMatrix.png"></div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+</body>
+
+</html>
