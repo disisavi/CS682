@@ -2,6 +2,7 @@
 .idea/
 CVworkspace.code-workspace
 **/*.jpg
+**/*.png
 .png
 .jpeg
 .vscode
