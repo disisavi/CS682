@@ -3,13 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import copy
+import glob
+import os 
 
-locations = ['../imageSource/e1.png','../imageSource/e2.jpg']
-alphas = [0,180,360]
+
+location = '../ImageSource/ST2MainHall4/'
+alphas = [275,270,90]
 
 def edgeImage(image):
     blurImage = cv2.GaussianBlur(image,(5,5),0)
-    sigma = 0.5
+    sigma = 0.4
     v = np.median(image)
     lower = int(max(0, (1 - sigma) * v))
     upper = int(min(255, (1.0 + sigma) * v))
@@ -21,7 +24,7 @@ def normalized(image):
     returnImage = np.zeros((height, width), dtype=np.uint8)
     maxvalue = np.amax(image)
     returnImage = np.multiply(image, 255 / maxvalue, casting='unsafe')
-    print(np.amax(returnImage))
+#     print(np.amax(returnImage))
     return returnImage
 
 def getanges(radian):
@@ -48,11 +51,67 @@ def radonTransformpy(image,alpha):
             returnImage[x][y] = x*cosine + y*sine
     return normalized(returnImage)
 
-for i,location in enumerate(locations):
+def sobelList(edge):
+    img_blur = cv2.blur(edge, (5, 5))
+    tempList = [cv2.Sobel(img_blur, cv2.CV_64F, 1, 0, ksize=5), cv2.Sobel(img_blur, cv2.CV_64F, 0, 1, ksize=5)]
+    return tempList
+
+def imageGradientGray(images):
+    returnList = []
+    xlist = []
+    ylist = []
+    imageList = []
+    edgeList = []
+    
+    for i, edge in enumerate(images):
+        print(edge.shape)
+        edge = cv2.blur(edge, (5, 5))
+        a = sobelList(edge)
+        angle = cv2.phase(a[0], a[1], angleInDegrees=True)
+        m = np.sqrt(np.square(a[0]) + np.square(a[1]))
+
+        max = np.amax(m)
+        m = (m * 255) / max
+        m = m.astype('uint8')
+        
+
+        sub_180 = angle > 180
+        angle[sub_180]-=180
+        angle = np.rint(angle/5)
+        print(np.amax(angle))
+        
+        hist = np.histogram(angle,36,[1,36])
+
+        plt.plot(hist[0], color="blue")
+        plt.show()
+        returnList.append(hist[0])
+
+    return returnList
+
+def loadALlImages(location):
+    files = [file for file in glob.glob(location + '*jpg')]
+    files.sort()
+    images = [cv2.imread(file) for file in files]
+    return images
+
+
+# Implementaion starts from here 
+os.system('cls' if os.name == 'nt' else 'clear')
+images = loadALlImages(location)
+print("image, angle")
+for i,image in enumerate(images):
+    edge = edgeImage(image)
+    plt.imshow(edge,cmap = "gray")
+    plt.show()
     for alpha in alphas:
         print(i,alpha)
-        image = cv2.imread(location)
-        edge = edgeImage(image)
-        transform = radonTransformpy(edge,alpha)
+        transform = radonTransform(edge,alpha)
         plt.imshow(transform)
         plt.show()
+images = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
+imageGradientGray(images)
+
+# TODO
+#         1. Improve edge 
+#         2. complete part 2 of the project 
+#         3. have an understanding of part 1 of the project
