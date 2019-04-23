@@ -6,7 +6,7 @@ import glob
 import os
 
 location = '../ImageSource/ST2MainHall4/'
-alphas = [45, 90, 0]
+alphas = [0, 45]
 
 
 def edgeImage(image):
@@ -19,20 +19,34 @@ def edgeImage(image):
     return detected_edge
 
 
-def normalized(image):
-    height, width = image.shape
-    returnImage = np.zeros((height, width), dtype=np.uint8)
-    maxvalue = np.amax(image)
-    returnImage = np.multiply(image, 255 / maxvalue, casting='unsafe')
-    #     print(np.amax(returnImage))
-    return returnImage
-
-
 def getanges(alpha):
     radian = math.radians(alpha)
     cosine = math.cos(radian)
     sine = math.sin(radian)
     return sine, cosine
+
+
+def getLinePoints(dvalue, image, count):
+    image = image.astype(int)
+    image[image == 254] = -1
+    image[image > 0] = 75
+    image[image == -1] = 254
+    frequency = {}
+    for (x, y), value in np.ndenumerate(dvalue):
+        if value != 0:
+            frequency.setdefault(value, []).append((x, y))
+
+    frequencyDesc = {}
+    for k in sorted(frequency, key=lambda k: len(frequency[k]), reverse=True):
+        frequencyDesc.setdefault(k, len(frequency[k]))
+
+    for i, (k, v) in enumerate(frequencyDesc.items()):
+        # print("\t- > ",frequency[k])
+        idx = np.array(frequency[k])
+        image[idx[:, 0], idx[:, 1]] = 254
+        if i > count:
+            break
+    return image
 
 
 def radonTransform(image, alpha):
@@ -41,12 +55,12 @@ def radonTransform(image, alpha):
     indices = np.nonzero(image)
     sine, cosine = getanges(alpha)
     returnImage[indices] = indices[0] * cosine + indices[1] * sine
-    
-    return returnImage
+
+    return getLinePoints(returnImage, image, 10)
 
 
 def radonTransformpy(image, alpha):
-#     print(image.shape)
+    #     print(image.shape)
     height, width = image.shape
     returnImage = np.zeros((height, width))
     sine, cosine = getanges(alpha)
@@ -54,30 +68,16 @@ def radonTransformpy(image, alpha):
         if item > 0:
             #     print("{"+str(x)+","+str(y)+"} --> "+str(x*cosine))
             returnImage[x][y] = x * cosine + y * sine
-#     print(np.amax(returnImage), np.amin(returnImage))
-    
-    frequency = {}
-    for (x,y), value in np.ndenumerate(returnImage):
-        if value != 0:
-            frequency.setdefault(value,[]).append((x,y))
+    #     print(np.amax(returnImage), np.amin(returnImage))
 
-    frequencyDesc = {}
-    for k in sorted(frequency, key=lambda k: len(frequency[k]), reverse=True):
-            frequencyDesc.setdefault(k,len(frequency[k]))
-
-    for i, (k,v) in enumerate(frequencyDesc.items()):
-        # print("\t- > ",frequency[k])
-        idx = np.array(frequency[k])
-        image[idx[:,0],idx[:,1]] = 100
-        if i > 2:
-           break
-    return (image)
+    return getLinePoints(returnImage, image, 10)
 
 
 def sobelList(edge):
     img_blur = cv2.blur(edge, (5, 5))
     tempList = [cv2.Sobel(img_blur, cv2.CV_64F, 1, 0, ksize=5), cv2.Sobel(img_blur, cv2.CV_64F, 0, 1, ksize=5)]
     return tempList
+
 
 def imageGradientGray(images):
     returnList = []
@@ -87,22 +87,28 @@ def imageGradientGray(images):
         edge = cv2.blur(edge, (5, 5))
         a = sobelList(edge)
         angle = cv2.phase(a[0], a[1], angleInDegrees=True)
-        m = np.sqrt(np.square(a[0]) + np.square(a[1]))
-
-        max = np.amax(m)
-        m = (m * 255) / max
-        m = m.astype('uint8')
 
         sub_180 = angle > 180
         angle[sub_180] -= 180
+
         angle = np.rint(angle / 5)
-        # print(np.amax(angle))
-
-        hist = np.histogram(angle, 36, [1, 36])
-
-        plt.plot(hist[0], color="blue")
+        hist, bins = np.histogram(angle, 36, [0, 36])
+        max = [-1, -1]
+        hist, bins = hist.tolist(), bins.tolist()
+        for h in hist:
+            if h > max[0]:
+                max[1] = max[0]
+                max[0] = h
+            elif h > max[1]:
+                max[1] = h
+        e = edgeImage(edge)
+        for element in max:
+            angle = bins[hist.index(element)] * 5
+            print(angle)
+            e = radonTransform(e, angle)
+        plt.plot(hist, color="black")
         plt.show()
-        returnList.append(hist[0])
+        returnList.append(e)
 
     return returnList
 
@@ -122,18 +128,17 @@ images = loadALlImages(location)
 print("image, angle")
 for i, image in enumerate(images):
     edge = edgeImage(image)
-    plt.imshow(edge, cmap="gray")
-    plt.show()
+    # plt.imshow(edge, cmap="gray")
+    # plt.show()
     for alpha in alphas:
-        print(i, alpha)
+        print(i, '\t', alpha)
         transform = radonTransformpy(edge, alpha)
-        plt.imshow(transform)
+        plt.imshow(transform, cmap='bone')
         plt.colorbar()
         plt.show()
 images = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
-imageGradientGray(images)
-
-# TODO
-#         1. Improve edge 
-#         2. complete part 2 of the project 
-#         3. have an understanding of part 1 of the project
+lineImages = imageGradientGray(images)
+for image in lineImages:
+    plt.imshow(image, cmap='bone')
+    plt.colorbar()
+    plt.show()
