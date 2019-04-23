@@ -6,7 +6,7 @@ import glob
 import os
 
 location = '../ImageSource/ST2MainHall4/'
-alphas = [0, 45]
+alphas = [61.9999, 0, 45]
 
 
 def edgeImage(image):
@@ -24,6 +24,18 @@ def getanges(alpha):
     cosine = math.cos(radian)
     sine = math.sin(radian)
     return sine, cosine
+
+
+def printlines(image, rho, theta):
+    a = np.cos(theta)
+    b = np.sin(theta)
+    x0 = a * rho
+    y0 = b * rho
+    x1 = int(x0 + 1000 * (-b))
+    y1 = int(y0 + 1000 * (a))
+    x2 = int(x0 - 1000 * (-b))
+    y2 = int(y0 - 1000 * (a))
+    cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
 
 def getLinePoints(dvalue, image, count):
@@ -56,7 +68,7 @@ def radonTransform(image, alpha):
     sine, cosine = getanges(alpha)
     returnImage[indices] = indices[0] * cosine + indices[1] * sine
 
-    return getLinePoints(returnImage, image, 10)
+    return getLinePoints(returnImage, image, 2)
 
 
 def radonTransformpy(image, alpha):
@@ -70,7 +82,7 @@ def radonTransformpy(image, alpha):
             returnImage[x][y] = x * cosine + y * sine
     #     print(np.amax(returnImage), np.amin(returnImage))
 
-    return getLinePoints(returnImage, image, 10)
+    return getLinePoints(returnImage, image, 2)
 
 
 def sobelList(edge):
@@ -113,6 +125,20 @@ def imageGradientGray(images):
     return returnList
 
 
+def getHoughTransform(image):
+    edge = edgeImage(image)
+    height, width = edge.shape
+    lines = cv2.HoughLines(edge, 1, np.pi / 180,(int)((height+width)/9) )
+    if lines is not None:
+        for line in lines:
+            for rho, theta in line:
+                printlines(image, rho, theta)
+
+    cv2.imshow("i", image)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
+
 def loadALlImages(location):
     files = [file for file in glob.glob(location + '*jpg')]
     files.sort()
@@ -125,20 +151,30 @@ def loadALlImages(location):
 # Implementaion starts from here 
 os.system('cls' if os.name == 'nt' else 'clear')
 images = loadALlImages(location)
-print("image, angle")
-for i, image in enumerate(images):
-    edge = edgeImage(image)
-    # plt.imshow(edge, cmap="gray")
-    # plt.show()
-    for alpha in alphas:
-        print(i, '\t', alpha)
-        transform = radonTransformpy(edge, alpha)
-        plt.imshow(transform, cmap='bone')
-        plt.colorbar()
-        plt.show()
-images = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
-lineImages = imageGradientGray(images)
-for image in lineImages:
-    plt.imshow(image, cmap='bone')
-    plt.colorbar()
-    plt.show()
+# print("image, angle")
+# for i, image in enumerate(images):
+#     edge = edgeImage(image)
+#     # plt.imshow(edge, cmap="gray")
+#     # plt.show()
+#     for alpha in alphas:
+#         print(i, '\t', alpha)
+#         transform = radonTransform(edge, alpha)
+#         plt.imshow(transform, cmap='bone')
+#         plt.colorbar()
+#         plt.show()
+# grayimages = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
+# lineImages = imageGradientGray(grayimages)
+# for image in lineImages:
+#     plt.imshow(image, cmap='bone')
+#     plt.colorbar()
+#     plt.show()
+
+print("part 3")
+
+for image in images:
+    getHoughTransform(image)
+
+# TODO
+#     1. make stuff faster, like list comprehension while sorting and stuff
+#     2. Find ways to make get lines faster by using numpy
+#     3. Make Part 2 better by having to see on all the lines in vicinity of an angle
