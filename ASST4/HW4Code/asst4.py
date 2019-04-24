@@ -6,6 +6,7 @@ import glob
 import os
 import copy
 
+enablePart1, enablePart2, enablePart3 = False, True, False
 location = '../ImageSource/ST2MainHall4/'
 alphas = [0, 90, 45]
 
@@ -55,7 +56,8 @@ def getLinePoints(dvalueMatrix, image, count):
     threshold = -1
     if int((h + w) / 20) > 100:
         threshold = int((h + w) / 20)
-    else : threshold = 100
+    else:
+        threshold = 100
     int((h + w) / 20)
     image = image.astype(int)
     image[image == 254] = -1
@@ -84,6 +86,9 @@ def getLinePoints(dvalueMatrix, image, count):
     if not dValue:
         image[0, 0] = 255
         return image, None
+    # else:
+    #     for d in dValue:
+    #         print(d, frequencyDesc[d])
     return image, dValue
 
 
@@ -93,7 +98,7 @@ def radonTransform(edgeImage, alpha, image):
     returnImage = np.zeros((height, width))
     indices = np.nonzero(edgeImage)
     sine, cosine = getanges(alpha)
-    returnImage[indices] = np.round((indices[0] * cosine + indices[1] * sine),4)
+    returnImage[indices] = np.round((indices[0] * cosine + indices[1] * sine), 4)
     hImage, dlist = getLinePoints(returnImage, edgeImage, 2)
     if dlist is not None:
         for d in dlist:
@@ -128,18 +133,17 @@ def imageGradientGray(image, cimage):
             max[0] = h
         elif h > max[1]:
             max[1] = h
-    edge = edgeImage(image)
-    cimagecopy = copy.copy(cimage)
+    edge = edgeImage(cimage)
+
     for element in max:
         angle = bins[hist.index(element)] * 5
         print("\tangle selected is ", angle)
-        cimage = copy.copy(cimagecopy)
         for i in range(-3, 6):
-            a = round(angle + i)
-            print("\t\tChecking for ", angle, " + ", i)
+            a = int(round(angle + i))
+            print("\t\tChecking for ", int(angle), " + ", i)
             edge, cimage = radonTransform(edge, a, cimage)
-        plt.imshow(cv2.cvtColor(cimage, cv2.COLOR_BGR2RGB))
-        plt.show()
+    plt.imshow(cv2.cvtColor(cimage, cv2.COLOR_BGR2RGB))
+    plt.show()
     return edge
 
 
@@ -177,48 +181,50 @@ def loadALlImages(location):
     files = [file for file in glob.glob(location + '*jpg')]
     files.sort()
     images = [cv2.imread(file) for file in files]
-    images.append(cv2.imread('../ImageSource/e1.png'))
-    images.append(cv2.imread('../ImageSource/e2.jpg'))
+
     return images
 
 
 # Implementaion starts from here 
 os.system('cls' if os.name == 'nt' else 'clear')
 images = loadALlImages(location)
-print("Part 1")
-print("image, angle")
-for i, image in enumerate(images):
-    edge = edgeImage(image)
-    # plt.imshow(edge, cmap="gray")
-    # plt.show()
-    for alpha in alphas:
-        print(i, '\t', alpha)
-        highlightLine, drwawnLine = radonTransform(edge, alpha, image)
-        plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
+if (enablePart1):
+    print("Part 1")
+    print("image, angle")
+    for i, image in enumerate(images):
+        edge = edgeImage(image)
+        # plt.imshow(edge, cmap="gray")
+        # plt.show()
+        for alpha in alphas:
+            print(i, '\t', alpha)
+            highlightLine, drwawnLine = radonTransform(edge, alpha, image)
+            plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
+            plt.colorbar()
+            plt.show()
+            plt.imshow(highlightLine, cmap='bone')
+            plt.colorbar()
+            plt.show()
+
+if enablePart2:
+    print("\n\nPart 2 ")
+    grayimages = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
+
+    for i, image in enumerate(grayimages):
+        print("For image ", i)
+        plt.imshow(imageGradientGray(image, images[i]), cmap='bone')
         plt.colorbar()
         plt.show()
-        plt.imshow(highlightLine, cmap='bone')
-        plt.colorbar()
-        plt.show()
 
-print("\n\nPart 2 ")
-grayimages = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
-
-for i, image in enumerate(grayimages):
-    print("For image ", i)
-    plt.imshow(imageGradientGray(image, images[i]), cmap='bone')
-    plt.colorbar()
-    plt.show()
-
-print("part 3")
-print("Lines drawn from Hugh Transform")
-for i, image in enumerate(images):
-    print("\timage", i)
-    getHoughTransform(image)
-print("Lines drawn from Probabilistic Hough Transform", i)
-for i, image in enumerate(images):
-    print("\timage", i)
-    getHoughProbabilisticTransform(image)
+if enablePart3:
+    print("part 3")
+    print("Lines drawn from Hugh Transform")
+    for i, image in enumerate(images):
+        print("\timage", i)
+        getHoughTransform(image)
+    print("Lines drawn from Probabilistic Hough Transform", i)
+    for i, image in enumerate(images):
+        print("\timage", i)
+        getHoughProbabilisticTransform(image)
 
 # TODO
 #     1. For part 2, we need to print all the lines together. It is needed for vanishing points.
