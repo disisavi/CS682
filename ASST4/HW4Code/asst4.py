@@ -51,6 +51,12 @@ def printlines(image, rho, theta, inversebit=False):
 
 
 def getLinePoints(dvalueMatrix, image, count):
+    h, w = image.shape
+    threshold = -1
+    if int((h + w) / 20) > 100:
+        threshold = int((h + w) / 20)
+    else : threshold = 100
+    int((h + w) / 20)
     image = image.astype(int)
     image[image == 254] = -1
     image[image > 0] = 75
@@ -67,15 +73,14 @@ def getLinePoints(dvalueMatrix, image, count):
 
     for i, (k, v) in enumerate(frequencyDesc.items()):
         # print("\t- > ",frequency[k])
-        if (frequencyDesc[k] > 100):
+        if (frequencyDesc[k] > threshold):
             # print(k, frequencyDesc[k])
             idx = np.array(frequency[k])
             image[idx[:, 0], idx[:, 1]] = 254
             dValue.append(k)
-            if i > count:
-                break
         else:
             break
+
     if not dValue:
         image[0, 0] = 255
         return image, None
@@ -88,7 +93,7 @@ def radonTransform(edgeImage, alpha, image):
     returnImage = np.zeros((height, width))
     indices = np.nonzero(edgeImage)
     sine, cosine = getanges(alpha)
-    returnImage[indices] = indices[0] * cosine + indices[1] * sine
+    returnImage[indices] = np.round((indices[0] * cosine + indices[1] * sine),4)
     hImage, dlist = getLinePoints(returnImage, edgeImage, 2)
     if dlist is not None:
         for d in dlist:
@@ -123,7 +128,7 @@ def imageGradientGray(image, cimage):
             max[0] = h
         elif h > max[1]:
             max[1] = h
-    e = edgeImage(image)
+    edge = edgeImage(image)
     cimagecopy = copy.copy(cimage)
     for element in max:
         angle = bins[hist.index(element)] * 5
@@ -132,17 +137,19 @@ def imageGradientGray(image, cimage):
         for i in range(-3, 6):
             a = round(angle + i)
             print("\t\tChecking for ", angle, " + ", i)
-            e, cimage = radonTransform(e, a, cimage)
+            edge, cimage = radonTransform(edge, a, cimage)
         plt.imshow(cv2.cvtColor(cimage, cv2.COLOR_BGR2RGB))
         plt.show()
-    return e
+    return edge
 
 
 def getHoughTransform(image):
     image = copy.copy(image)
     edge = edgeImage(image)
     height, width = edge.shape
-    lines = cv2.HoughLines(edge, 1, np.pi / 180, int((height + width) / 10))
+    threshold = int((height + width) / 10)
+    # print(threshold)
+    lines = cv2.HoughLines(edge, 1, np.pi / 180, threshold)
     if lines is not None:
         for line in lines:
             for rho, theta in line:
@@ -208,7 +215,13 @@ print("Lines drawn from Hugh Transform")
 for i, image in enumerate(images):
     print("\timage", i)
     getHoughTransform(image)
-
+print("Lines drawn from Probabilistic Hough Transform", i)
 for i, image in enumerate(images):
-    print("Lines drawn from Probabilistic Hough Transform for image", i)
+    print("\timage", i)
     getHoughProbabilisticTransform(image)
+
+# TODO
+#     1. For part 2, we need to print all the lines together. It is needed for vanishing points.
+#     2. For part 2, there are a few quirks with getLinePoints(). Check for that and debug that please.
+#     3. Check for a faster implementation of getlinepoints()
+#     4. Check for better histogram Calculations for imageGradientGray()
