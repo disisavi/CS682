@@ -28,7 +28,7 @@ def getanges(alpha):
 
 
 def printlines(image, rho, theta, inversebit=False):
-    radian = 0
+    radian = -1
     if inversebit:
         radian = math.radians(theta)
     else:
@@ -67,7 +67,7 @@ def getLinePoints(dvalueMatrix, image, count):
 
     for i, (k, v) in enumerate(frequencyDesc.items()):
         # print("\t- > ",frequency[k])
-        if (frequencyDesc[k] > 200):
+        if (frequencyDesc[k] > 100):
             # print(k, frequencyDesc[k])
             idx = np.array(frequency[k])
             image[idx[:, 0], idx[:, 1]] = 254
@@ -77,6 +77,7 @@ def getLinePoints(dvalueMatrix, image, count):
         else:
             break
     if not dValue:
+        image[0, 0] = 255
         return image, None
     return image, dValue
 
@@ -92,9 +93,8 @@ def radonTransform(edgeImage, alpha, image):
     if dlist is not None:
         for d in dlist:
             printlines(image, d, alpha, True)
-    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    plt.show()
-    return hImage
+
+    return hImage, image
 
 
 def sobelList(edge):
@@ -103,52 +103,67 @@ def sobelList(edge):
     return tempList
 
 
-def imageGradientGray(images):
-    returnList = []
+def imageGradientGray(image, cimage):
+    image = copy.copy(image)
+    image = cv2.blur(image, (5, 5))
+    a = sobelList(image)
+    angle = cv2.phase(a[0], a[1], angleInDegrees=True)
 
-    for i, edge in enumerate(images):
-        # print(edge.shape)
-        edge = cv2.blur(edge, (5, 5))
-        a = sobelList(edge)
-        angle = cv2.phase(a[0], a[1], angleInDegrees=True)
+    angle[angle > 179] -= 180
 
-        sub_180 = angle > 180
-        angle[sub_180] -= 180
-
-        angle = np.rint(angle / 5)
-        hist, bins = np.histogram(angle, 36, [0, 36])
-        max = [-1, -1]
-        hist, bins = hist.tolist(), bins.tolist()
-        for h in hist:
-            if h > max[0]:
-                max[1] = max[0]
-                max[0] = h
-            elif h > max[1]:
-                max[1] = h
-        e = edgeImage(edge)
-        for element in max:
-            angle = bins[hist.index(element)] * 5
-            print(angle)
-            e = radonTransform(e, angle,image)
-        plt.plot(hist, color="black")
+    angle = np.rint(angle / 5)
+    hist, bins = np.histogram(angle, 36, [0, 36])
+    max = [-1, -1]
+    hist, bins = hist.tolist(), bins.tolist()
+    plt.plot(hist, color="black")
+    plt.show()
+    for h in hist:
+        if h > max[0]:
+            max[1] = max[0]
+            max[0] = h
+        elif h > max[1]:
+            max[1] = h
+    e = edgeImage(image)
+    cimagecopy = copy.copy(cimage)
+    for element in max:
+        angle = bins[hist.index(element)] * 5
+        print("\tangle selected is ", angle)
+        cimage = copy.copy(cimagecopy)
+        for i in range(-3, 6):
+            a = round(angle + i)
+            print("\t\tChecking for ", angle, " + ", i)
+            e, cimage = radonTransform(e, a, cimage)
+        plt.imshow(cv2.cvtColor(cimage, cv2.COLOR_BGR2RGB))
         plt.show()
-        returnList.append(e)
-
-    return returnList
+    return e
 
 
 def getHoughTransform(image):
+    image = copy.copy(image)
     edge = edgeImage(image)
     height, width = edge.shape
-    lines = cv2.HoughLines(edge, 1, np.pi / 180, (int)((height + width) / 9))
+    lines = cv2.HoughLines(edge, 1, np.pi / 180, int((height + width) / 10))
     if lines is not None:
         for line in lines:
             for rho, theta in line:
                 printlines(image, rho, theta)
 
-    cv2.imshow("i", image)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.show()
+
+
+def getHoughProbabilisticTransform(image):
+    image = copy.copy(image)
+    edge = edgeImage(image)
+    minLineLength = 100
+    maxLineGap = 50
+    lines = cv2.HoughLinesP(edge, 1, np.pi / 90, 100, minLineLength, maxLineGap)
+    if lines is not None:
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.show()
 
 
 def loadALlImages(location):
@@ -163,6 +178,7 @@ def loadALlImages(location):
 # Implementaion starts from here 
 os.system('cls' if os.name == 'nt' else 'clear')
 images = loadALlImages(location)
+print("Part 1")
 print("image, angle")
 for i, image in enumerate(images):
     edge = edgeImage(image)
@@ -170,23 +186,29 @@ for i, image in enumerate(images):
     # plt.show()
     for alpha in alphas:
         print(i, '\t', alpha)
-        transform = radonTransform(edge, alpha, image)
-        plt.imshow(transform, cmap='bone')
+        highlightLine, drwawnLine = radonTransform(edge, alpha, image)
+        plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
         plt.colorbar()
         plt.show()
+        plt.imshow(highlightLine, cmap='bone')
+        plt.colorbar()
+        plt.show()
+
+print("\n\nPart 2 ")
 grayimages = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
-lineImages = imageGradientGray(grayimages)
-for image in lineImages:
-    plt.imshow(image, cmap='bone')
+
+for i, image in enumerate(grayimages):
+    print("For image ", i)
+    plt.imshow(imageGradientGray(image, images[i]), cmap='bone')
     plt.colorbar()
     plt.show()
 
 print("part 3")
-
-for image in images:
+print("Lines drawn from Hugh Transform")
+for i, image in enumerate(images):
+    print("\timage", i)
     getHoughTransform(image)
 
-# TODO later
-#     1. make stuff faster, like list comprehension while sorting and stuff
-#     2. Find ways to make get lines faster by using numpy
-#     3. Make Part 2 better by having to see on all the lines in vicinity of an angle
+for i, image in enumerate(images):
+    print("Lines drawn from Probabilistic Hough Transform for image", i)
+    getHoughProbabilisticTransform(image)
