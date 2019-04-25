@@ -206,28 +206,43 @@ def intersection_point(rho_list1: list, theta1: int or float, rho_list2: list, t
 
 
 def segment_lines_by_angles(lines):
-    pass
+    rholist = []
+    thetalist = []
+
+    if lines is not None:
+        for line in lines:
+            for rho, theta in line:
+                if theta in thetalist:
+                    temprho = rholist[thetalist.index(theta)]
+                    temprho.append(rho)
+                else:
+                    thetalist.append(theta)
+                    rholist.append([rho])
+    return rholist, thetalist
+
 
 def findVanishingPoint(list_segmented_lines: list, shape: tuple, segmentedLines: bool) -> list:
+    printedLines = list_segmented_lines[0]
     if segmentedLines:
-        printedLines = list_segmented_lines[0]
         rho_list = list_segmented_lines[1]
         theta_list = list_segmented_lines[2]
-        intersectionPointsHistogram = {}
-        for i in range(len(theta_list)):
-            for j in range(i + 1, len(theta_list)):
-                if theta_list[i] == theta_list[j]:
-                    pass
-                print(theta_list[i], theta_list[j])
-                intersection_point(rho_list[i], theta_list[i], rho_list[j], theta_list[j], intersectionPointsHistogram,
-                                   shape)
-        for point, freq in intersectionPointsHistogram.items():
-            if freq > 5:
-                print("\t\t", point, freq)
+
     else:
-        pass
+        rho_list, theta_list = segment_lines_by_angles(list_segmented_lines[1])
 
-
+    intersectionPointsHistogram = {}
+    for i in range(len(theta_list)):
+        for j in range(i + 1, len(theta_list)):
+            if theta_list[i] == theta_list[j]:
+                pass
+            intersection_point(rho_list[i], theta_list[i], rho_list[j], theta_list[j], intersectionPointsHistogram,
+                               shape)
+    for point, freq in intersectionPointsHistogram.items():
+        # if freq == 1:
+        print("\t\t", point, freq)
+        cv2.circle(printedLines, point, 10, (0, 255, 0), thickness=1)
+    plt.imshow(printedLines)
+    plt.show()
 
 
 def loadALlImages(location):
@@ -243,7 +258,7 @@ os.system('cls' if os.name == 'nt' else 'clear')
 radon_transform_list = []  ## 0 --> Lines drawn 1. rou 2. Theta
 hough_transform_list = []  ## 0 --> Lines drawn 2. unsegmented set of lines
 images = loadALlImages(location)
-if (enablePart1):
+if enablePart1:
     print("Part 1")
     print("image, angle")
     for i, image in enumerate(images):
@@ -284,13 +299,15 @@ if enablePart3:
 
 if enablePart4:
     print("part 4")
-    print("\t1. Vanishing points Using Radon Transform")
+    print("1. Vanishing points Using Radon Transform")
     for i, wow in enumerate(radon_transform_list):
+        print("\timage ", i)
         y, x, _ = images[i].shape
 
         findVanishingPoint(wow, (x, y), True)
-    print("\t2. Vanishing points Using Hough Transform")
+    print("2. Vanishing points Using Hough Transform")
     for wow in hough_transform_list:
+        print("\timage ", i)
         y, x, _ = images[i].shape
         findVanishingPoint(wow, (x, y), False)
 
