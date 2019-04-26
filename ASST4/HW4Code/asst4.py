@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,8 +7,9 @@ import math
 import glob
 import os
 import copy
+import random
 
-enablePart1, enablePart2, enablePart3, enablePart4 = False, True, True, True
+enablePart1, enablePart2, enablePart3, enablePart4 = False, True, False, False
 location = '../ImageSource/ST2MainHall4/'
 alphas = [0, 90, 45]
 
@@ -39,14 +42,14 @@ def printlines(image, rho, theta, inversebit=False):
 
     x0 = a * rho
     y0 = b * rho
-    x1 = int(x0 + 1000 * (-b))
-    y1 = int(y0 + 1000 * (a))
-    x2 = int(x0 - 1000 * (-b))
-    y2 = int(y0 - 1000 * (a))
+    x1 = int(x0 + 10000 * (-b))
+    y1 = int(y0 + 10000 * (a))
+    x2 = int(x0 - 10000 * (-b))
+    y2 = int(y0 - 10000 * (a))
     if inversebit:
-        cv2.line(image, (y1, x1), (y2, x2), (0, 0, 255), 2)
+        cv2.line(image, (y1, x1), (y2, x2), (0, 0, 255), 1)
     else:
-        cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+        cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 1)
 
 
 def getLinePoints(dvalueMatrix, edgeImage, count):
@@ -111,6 +114,8 @@ def sobelList(edge):
 def imageGradientGray(image, cimage):
     image = copy.copy(image)
     image = cv2.blur(image, (5, 5))
+    max = []
+
     a = sobelList(image)
     angle = cv2.phase(a[0], a[1], angleInDegrees=True)
 
@@ -118,26 +123,16 @@ def imageGradientGray(image, cimage):
 
     angle = np.rint(angle / 5)
     hist, bins = np.histogram(angle, 36, [0, 36])
-    max = [-1, -1, -1]
-    hist, bins = hist.tolist(), bins.tolist()
 
+    hist, bins = hist.tolist(), bins.tolist()
     plt.plot(hist, color="black")
     plt.show()
-
-    max[0] = hist[0]
-    for i in range(len(hist)):
-        if i == 0:
-            continue
-        h = hist[i]
-        if h > max[1]:
-            max[2] = max[1]
-            max[1] = h
-        elif h > max[1]:
-            max[2] = h
-
+    t = np.mean(hist)
+    
+    for h in hist:
+        if h > t:
+            max.append(h)
     edge = edgeImage(cimage)
-    plt.imshow(edge)
-    plt.show()
     rouList = []  # list of a list containing D for each alpha
     alphaList = []  # List of all the alphas for whcih i got a significant line
     for element in max:
@@ -153,7 +148,7 @@ def imageGradientGray(image, cimage):
 
     plt.imshow(cv2.cvtColor(cimage, cv2.COLOR_BGR2RGB))
     plt.show()
-    return edge, rouList, alphaList
+    return edge, rouList, alphaList, cimage
 
 
 def getHoughTransform(image):
@@ -221,27 +216,33 @@ def segment_lines_by_angles(lines):
     return rholist, thetalist
 
 
-def findVanishingPoint(list_segmented_lines: list, shape: tuple, segmentedLines: bool) -> list:
-    printedLines = list_segmented_lines[0]
+def findVanishingPoint(list_segmented_lines: list, image: np.ndarray, segmentedLines: bool) -> list:
+    shape = (image.shape[1], image.shape[0])
+    image = copy.copy(image)
     if segmentedLines:
         rho_list = list_segmented_lines[1]
         theta_list = list_segmented_lines[2]
+        theta_list = np.radians(theta_list).tolist()
 
     else:
         rho_list, theta_list = segment_lines_by_angles(list_segmented_lines[1])
 
-    intersectionPointsHistogram = {}
+    intersectionPointsHistogram: Dict[tuple, int] = {}
     for i in range(len(theta_list)):
         for j in range(i + 1, len(theta_list)):
             if theta_list[i] == theta_list[j]:
                 pass
             intersection_point(rho_list[i], theta_list[i], rho_list[j], theta_list[j], intersectionPointsHistogram,
                                shape)
+    intersectionPointsHistogram = {k: intersectionPointsHistogram[k] for k in
+                                   sorted(intersectionPointsHistogram,
+                                          key=lambda k: intersectionPointsHistogram[k], reverse=True)[:3]}
     for point, freq in intersectionPointsHistogram.items():
-        # if freq == 1:
-        print("\t\t", point, freq)
-        cv2.circle(printedLines, point, 10, (0, 255, 0), thickness=1)
-    plt.imshow(printedLines)
+        if freq > 2:
+            # print("\t\t", point, freq)
+            cv2.circle(image, point, 10, (0, 255, 0), thickness=1)
+
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     plt.show()
 
 
@@ -260,21 +261,44 @@ hough_transform_list = []  ## 0 --> Lines drawn 2. unsegmented set of lines
 images = loadALlImages(location)
 if enablePart1:
     print("Part 1")
-    print("image, angle")
-    for i, image in enumerate(images):
+    print('alphas are (in Degrees)', alphas)
+    print("\nimage, angle")
+    for j, image in enumerate(images):
         edge = edgeImage(image)
         # plt.imshow(edge, cmap="gray")
         # plt.show()
+        i = j + 1
         for alpha in alphas:
             print(i, '\t', alpha)
             highlightLine, drwawnLine, _, _ = radonTransform(edge, alpha, image)
             plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
+            plt.title("Part 1 --> Line Detected for Alpha" + str(alpha))
+            plt.savefig("../ImageSource/LD1_" + str(i) + "_" + str(alpha) + ".jpg")
             plt.colorbar()
             plt.show()
             plt.imshow(highlightLine, cmap='bone')
+            plt.title("Part 1 --> Points contributing Line for Alpha" + str(alpha))
+            plt.savefig("../ImageSource/PD1_" + str(i) + "_" + str(alpha) + ".jpg")
             plt.colorbar()
             plt.show()
-
+    print("**********************\nFor Random Angles")
+    print("image, angle")
+    for j, image in enumerate(images):
+        i = j + 1
+        for _ in range(2):
+            alpha = random.randint(0, 360)
+            print(i, '\t', alpha)
+            highlightLine, drwawnLine, _, _ = radonTransform(edge, alpha, image)
+            plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
+            plt.title("Part 1 --> Line Detected for Random Alpha" + str(alpha))
+            plt.savefig("../ImageSource/LD2_" + str(i) + "_" + str(alpha) + ".jpg")
+            plt.colorbar()
+            plt.show()
+            plt.imshow(highlightLine, cmap='bone')
+            plt.title("Part 1 --> Points contributing Line for Random Alpha" + str(alpha))
+            plt.savefig("../ImageSource/PD2_" + str(i) + "_" + str(alpha) + ".jpg")
+            plt.colorbar()
+            plt.show()
 if enablePart2:
     print("\n\nPart 2 ")
     grayimages = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
@@ -302,17 +326,15 @@ if enablePart4:
     print("1. Vanishing points Using Radon Transform")
     for i, wow in enumerate(radon_transform_list):
         print("\timage ", i)
-        y, x, _ = images[i].shape
-
-        findVanishingPoint(wow, (x, y), True)
+        findVanishingPoint(wow, images[i], True)
     print("2. Vanishing points Using Hough Transform")
-    for wow in hough_transform_list:
+    for i, wow in enumerate(hough_transform_list):
         print("\timage ", i)
         y, x, _ = images[i].shape
-        findVanishingPoint(wow, (x, y), False)
+        findVanishingPoint(wow, images[i], False)
 
 # TODO
-#     0. Find a way to find 3 maxima's instead of2
+#     0. Find a way to find 3 maxima's instead of 2 --> Done
 #     1. Check for a faster implementation of getlinepoints()
 #     2. Please comment the method structures
 #     3. Draw line from one end to another
