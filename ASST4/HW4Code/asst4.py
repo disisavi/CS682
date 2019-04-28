@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict
 
 import cv2
 import numpy as np
@@ -9,7 +9,7 @@ import os
 import copy
 import random
 
-enablePart1, enablePart2, enablePart3, enablePart4 = False, True, False, False
+enablePart1, enablePart2, enablePart3, enablePart4 = True, True, True, True
 location = '../ImageSource/ST2MainHall4/'
 alphas = [0, 90, 45]
 
@@ -42,10 +42,10 @@ def printlines(image, rho, theta, inversebit=False):
 
     x0 = a * rho
     y0 = b * rho
-    x1 = int(x0 + 10000 * (-b))
-    y1 = int(y0 + 10000 * (a))
-    x2 = int(x0 - 10000 * (-b))
-    y2 = int(y0 - 10000 * (a))
+    x1 = int(x0 + 100000 * (-b))
+    y1 = int(y0 + 100000 * (a))
+    x2 = int(x0 - 100000 * (-b))
+    y2 = int(y0 - 100000 * (a))
     if inversebit:
         cv2.line(image, (y1, x1), (y2, x2), (0, 0, 255), 1)
     else:
@@ -111,7 +111,7 @@ def sobelList(edge):
     return tempList
 
 
-def imageGradientGray(image, cimage):
+def getlinesimage(image, cimage, iterator):
     image = copy.copy(image)
     image = cv2.blur(image, (5, 5))
     max = []
@@ -126,9 +126,11 @@ def imageGradientGray(image, cimage):
 
     hist, bins = hist.tolist(), bins.tolist()
     plt.plot(hist, color="black")
+    plt.title("Part 2 --> Orientation Histogram for image " + str(iterator + 1))
+    plt.savefig("../ImageSource/2H1_i" + str(iterator + 1) + ".png")
     plt.show()
     t = np.mean(hist)
-    
+
     for h in hist:
         if h > t:
             max.append(h)
@@ -147,17 +149,19 @@ def imageGradientGray(image, cimage):
                 alphaList.append(alpha)
 
     plt.imshow(cv2.cvtColor(cimage, cv2.COLOR_BGR2RGB))
-    plt.show()
+    plt.title("Part 2 --> Lines detected for image " + str(iterator + 1))
+    plt.savefig("../ImageSource/2LD1_i" + str(iterator) + ".png")
     return edge, rouList, alphaList, cimage
 
 
-def getHoughTransform(image):
+def getHoughTransform(image: np.ndarray, i: str) -> list:
     image = copy.copy(image)
     edge = edgeImage(image)
     height, width = edge.shape
     threshold = int((height + width) / 10)
-    # print(threshold)
-    lines = cv2.HoughLines(edge, 1, np.pi / 180, threshold)
+    if threshold <= 300:
+        threshold = 300
+    lines = cv2.HoughLines(edge, 2, np.pi / 180, threshold)
 
     if lines is not None:
         for line in lines:
@@ -165,11 +169,13 @@ def getHoughTransform(image):
                 printlines(image, rho, theta)
 
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.title("Part 3 --> Hough Transform : Lines detected for image " + i)
+    plt.savefig("../ImageSource/3LD1_i" + i + ".png")
     plt.show()
     return image, lines
 
 
-def getHoughProbabilisticTransform(image):
+def getHoughProbabilisticTransform(image: np.ndarray, i: str):
     image = copy.copy(image)
     edge = edgeImage(image)
     minLineLength = 100
@@ -180,6 +186,8 @@ def getHoughProbabilisticTransform(image):
             for x1, y1, x2, y2 in line:
                 cv2.line(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.title("Part 3 --> Probabilistic Hough Transform : Lines detected for image " + i)
+    plt.savefig("../ImageSource/3LD2_i" + i + ".png")
     plt.show()
     return image
 
@@ -216,17 +224,25 @@ def segment_lines_by_angles(lines):
     return rholist, thetalist
 
 
-def findVanishingPoint(list_segmented_lines: list, image: np.ndarray, segmentedLines: bool) -> list:
+def findVanishingPoint(list_segmented_lines: list, image: np.ndarray, segmentedLines: bool, itemNumber: str) -> list:
+    stringtoSave = "../ImageSource/4LD"
+    title = "Part 4 --> Vanishing Points with"
     shape = (image.shape[1], image.shape[0])
     image = copy.copy(image)
     if segmentedLines:
         rho_list = list_segmented_lines[1]
         theta_list = list_segmented_lines[2]
         theta_list = np.radians(theta_list).tolist()
+        stringtoSave += "1_i"
+        title += " Radon Transform for image"
 
     else:
         rho_list, theta_list = segment_lines_by_angles(list_segmented_lines[1])
+        stringtoSave += "2_i"
+        title += " Hough Transform for image"
 
+    stringtoSave += itemNumber + ".png"
+    title += itemNumber
     intersectionPointsHistogram: Dict[tuple, int] = {}
     for i in range(len(theta_list)):
         for j in range(i + 1, len(theta_list)):
@@ -240,9 +256,11 @@ def findVanishingPoint(list_segmented_lines: list, image: np.ndarray, segmentedL
     for point, freq in intersectionPointsHistogram.items():
         if freq > 2:
             # print("\t\t", point, freq)
-            cv2.circle(image, point, 10, (0, 255, 0), thickness=1)
+            cv2.circle(image, point, 10, (255, 0, 0), thickness=2)
 
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.title(title)
+    plt.savefig(stringtoSave)
     plt.show()
 
 
@@ -272,66 +290,72 @@ if enablePart1:
             print(i, '\t', alpha)
             highlightLine, drwawnLine, _, _ = radonTransform(edge, alpha, image)
             plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
-            plt.title("Part 1 --> Line Detected for Alpha" + str(alpha))
-            plt.savefig("../ImageSource/LD1_" + str(i) + "_" + str(alpha) + ".jpg")
-            plt.colorbar()
+            plt.title("Part 1 --> Line Detected for Alpha " + str(alpha))
+            plt.savefig("../ImageSource/1LD1_" + str(i) + "_" + str(alpha) + ".png")
             plt.show()
             plt.imshow(highlightLine, cmap='bone')
-            plt.title("Part 1 --> Points contributing Line for Alpha" + str(alpha))
-            plt.savefig("../ImageSource/PD1_" + str(i) + "_" + str(alpha) + ".jpg")
+            plt.title("Part 1 --> Points contributing Line for Alpha " + str(alpha))
+            plt.savefig("../ImageSource/1PD1_" + str(i) + "_" + str(alpha) + ".png")
             plt.colorbar()
             plt.show()
     print("**********************\nFor Random Angles")
     print("image, angle")
     for j, image in enumerate(images):
         i = j + 1
-        for _ in range(2):
+        for k in range(2):
             alpha = random.randint(0, 360)
             print(i, '\t', alpha)
             highlightLine, drwawnLine, _, _ = radonTransform(edge, alpha, image)
             plt.imshow(cv2.cvtColor(drwawnLine, cv2.COLOR_BGR2RGB), cmap='bone')
-            plt.title("Part 1 --> Line Detected for Random Alpha" + str(alpha))
-            plt.savefig("../ImageSource/LD2_" + str(i) + "_" + str(alpha) + ".jpg")
+            plt.title("Part 1 --> Line Detected for Random Alpha " + str(alpha))
+            plt.savefig("../ImageSource/1LD2_" + str(k) + "_i" + str(i) + ".png")
             plt.colorbar()
             plt.show()
             plt.imshow(highlightLine, cmap='bone')
-            plt.title("Part 1 --> Points contributing Line for Random Alpha" + str(alpha))
-            plt.savefig("../ImageSource/PD2_" + str(i) + "_" + str(alpha) + ".jpg")
+            plt.title("Part 1 --> Points contributing Line for Random Alpha " + str(alpha))
+            plt.savefig("../ImageSource/1PD2_" + str(k) + "_i" + str(i) + ".png")
             plt.colorbar()
             plt.show()
 if enablePart2:
-    print("\n\nPart 2 ")
+    print("\n\n###############################")
+    print("\nPart 2 ")
     grayimages = [cv2.cvtColor(image, cv2.cv2.COLOR_BGR2GRAY) for image in images]
 
     for i, image in enumerate(grayimages):
-        print("For image ", i)
-        radon_transform_list.append(imageGradientGray(image, images[i]))
+        print("For image ", i + 1)
+        radon_transform_list.append(getlinesimage(image, images[i], i))
         plt.imshow(radon_transform_list[i][0], cmap='bone')
+        plt.title("Part 2 --> Lines detected for image " + str(i + 1))
+        plt.savefig("../ImageSource/2PD1_i" + str(i) + ".png")
         plt.colorbar()
         plt.show()
 
 if enablePart3:
-    print("part 3")
+    print("\n\n###############################")
+    print("\npart 3")
     print("Lines drawn from Hugh Transform")
     for i, image in enumerate(images):
-        print("\timage", i)
-        hough_transform_list.append(getHoughTransform(image))
+        print("\timag   e", i)
+        hough_transform_list.append(getHoughTransform(image, str(int(i + 1))))
     print("Lines drawn from Probabilistic Hough Transform", i)
     for i, image in enumerate(images):
         print("\timage", i)
-        getHoughProbabilisticTransform(image)
+        getHoughProbabilisticTransform(image, str(i + 1))
 
 if enablePart4:
+    print("\n\n###############################")
     print("part 4")
     print("1. Vanishing points Using Radon Transform")
-    for i, wow in enumerate(radon_transform_list):
+    for j, wow in enumerate(radon_transform_list):
+        i = j + 1
         print("\timage ", i)
-        findVanishingPoint(wow, images[i], True)
-    print("2. Vanishing points Using Hough Transform")
-    for i, wow in enumerate(hough_transform_list):
+        findVanishingPoint(wow, images[j], True, str(i))
+    print("\n2. Vanishing points Using Hough Transform")
+    for j, wow in enumerate(hough_transform_list):
+        i = j + 1
         print("\timage ", i)
-        y, x, _ = images[i].shape
-        findVanishingPoint(wow, images[i], False)
+        y, x, _ = images[j].shape
+        findVanishingPoint(wow, images[j], False, str(i))
 
 # TODO
 #     0. Find a way to find 3 maxima's instead of 2 --> Done
