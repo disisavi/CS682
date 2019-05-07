@@ -9,7 +9,7 @@ import os
 import copy
 import random
 
-enablePart1, enablePart2, enablePart3, enablePart4 = True, True, True, True
+enablePart1, enablePart2, enablePart3, enablePart4 = False,False, True, False
 location = '../ImageSource/ST2MainHall4/'
 alphas = [0, 90, 45]
 
